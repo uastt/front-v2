@@ -45,13 +45,40 @@ if (navigator.mediaDevices.getUserMedia) {
       record.disabled = false;
     };
 
-    mediaRecorder.onstop = function (e) {
+    mediaRecorder.onstop = async function (e) {
       console.log("Last data to read (after MediaRecorder.stop() called).");
 
+      const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
+      chunks = [];
+      const audioURL = window.URL.createObjectURL(blob);
+      console.log("recorder stopped");
+
+
+      const formData  = new FormData();
+      formData.append("audiofile", blob, "test.webm");
+      //fetch(`https://gpt.testme.cloud/api/1.0/transcribe`, {method:"POST", body:formData})
+
+      const response = await fetch('http://localhost:8019/api/1.0/transcribe', {method:"POST", body:formData});
+      const responce = await response.json();
+      console.log(responce);
+
+
+      const responseContainer = document.createElement("div");
+      const transcribed = document.createElement("div");
+      transcribed.innerHTML = "<b>TRANSCRIBED:</b> "+responce.Text1;
+      const postProcessed = document.createElement("div");
+      postProcessed.innerHTML = "<b>POSTPROCESSED:</b> "+responce.Text2;
+      const timeTook = document.createElement("div");
+      timeTook.innerHTML = "<b>Time:</b> "+responce.TookTime
+      responseContainer.appendChild(transcribed);
+      responseContainer.appendChild(postProcessed);
+      responseContainer.appendChild(timeTook);
+
       const clipName = prompt(
-        "Enter a name for your sound clip?",
-        "My unnamed clip"
+          "Enter a name for your sound clip?",
+          "My unnamed clip"
       );
+
 
       const clipContainer = document.createElement("article");
       const clipLabel = document.createElement("p");
@@ -72,14 +99,13 @@ if (navigator.mediaDevices.getUserMedia) {
       clipContainer.appendChild(audio);
       clipContainer.appendChild(clipLabel);
       clipContainer.appendChild(deleteButton);
+      clipContainer.appendChild(responseContainer);
       soundClips.appendChild(clipContainer);
 
       audio.controls = true;
-      const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
-      chunks = [];
-      const audioURL = window.URL.createObjectURL(blob);
       audio.src = audioURL;
-      console.log("recorder stopped");
+
+
 
       deleteButton.onclick = function (e) {
         e.target.closest(".clip").remove();
@@ -94,6 +120,11 @@ if (navigator.mediaDevices.getUserMedia) {
           clipLabel.textContent = newClipName;
         }
       };
+
+
+
+
+
     };
 
     mediaRecorder.ondataavailable = function (e) {
