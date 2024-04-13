@@ -56,9 +56,7 @@ if (navigator.mediaDevices.getUserMedia) {
 
       const formData  = new FormData();
       formData.append("audiofile", blob, "test.webm");
-      //fetch(`https://gpt.testme.cloud/api/1.0/transcribe`, {method:"POST", body:formData})
-
-      const response = await fetch('http://localhost:8019/api/1.0/transcribe', {method:"POST", body:formData});
+      const response = await fetch('https://gpt.testme.cloud/api/1.0/transcribe', {method:"POST", body:formData});
       const responce = await response.json();
       console.log(responce);
 
