@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+
+
+  </head>
+
+  <body>
+
+    <button id="startRecording">Start Recording</button>
+
+
+
+    <script>
+      const startRecordingButton = document.getElementById("startRecording");
+let isRecording = false;
+let recordedChunks = [];
+
+startRecordingButton.addEventListener("click", () => {
+    if (!isRecording) {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                const mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = (e) => {
+                    recordedChunks.push(e.data);
+                }
+
+                mediaRecorder.onstop = () => {
+                    const recordedBlob = new Blob(recordedChunks, { type: 'audio/wav' });
+                    const formData = new FormData();
+                    formData.append('audioFile', recordedBlob);
+
+                    fetch('http://example.com/upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        console.log('Audio file uploaded successfully');
+                    })
+                    .catch(error => {
+                        console.error('Error uploading audio file:', error);
+                    });
+                };
+
+                mediaRecorder.start();
+                startRecordingButton.innerText = "Stop Recording";
+                isRecording = true;
+            })
+            .catch(error => {
+                console.error('Error accessing audio stream:', error);
+            });
+    } else {
+        mediaRecorder.stop();
+        startRecordingButton.innerText = "Start Recording";
+        isRecording = false;
+    }
+});
+    </script>
+    
+  </body>
+</html>
