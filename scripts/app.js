@@ -1,6 +1,8 @@
 // Set up basic variables for app
 const record = document.querySelector(".record");
 const stop = document.querySelector(".stop");
+const upload = document.querySelector(".upload");
+const uploadFile = document.querySelector("#uploadFile");
 const soundClips = document.querySelector(".sound-clips");
 const canvas = document.querySelector(".visualizer");
 const mainSection = document.querySelector(".main-controls");
@@ -24,6 +26,14 @@ if (navigator.mediaDevices.getUserMedia) {
 
     visualize(stream);
 
+    uploadFile.onchange = function(e) {
+      console.log(e);
+      const url = (URL || webkit).createObjectURL(this.files[0]);
+      console.log(this.files[0]);
+      chunks.push(this.files[0]);
+      mediaRecorder.onstop(new Event('file-upload'));
+    }
+
     record.onclick = function () {
       mediaRecorder.start();
       console.log(mediaRecorder.state);
@@ -45,8 +55,13 @@ if (navigator.mediaDevices.getUserMedia) {
       record.disabled = false;
     };
 
-    mediaRecorder.onstop = async function (e) {
+    mediaRecorder.onstop = async function (evt) {
       console.log("Last data to read (after MediaRecorder.stop() called).");
+      console.log(evt);
+
+      if (evt.type == 'file-upload') {
+
+      }
 
       const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
       chunks = [];
