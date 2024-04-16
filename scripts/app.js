@@ -27,9 +27,9 @@ if (navigator.mediaDevices.getUserMedia) {
     visualize(stream);
 
     uploadFile.onchange = function(e) {
-      console.log(e);
+      //console.log(e);
       const url = (URL || webkit).createObjectURL(this.files[0]);
-      console.log(this.files[0]);
+      //console.log(this.files[0]);
       chunks.push(this.files[0]);
       mediaRecorder.onstop(new Event('file-upload'));
     }
@@ -59,8 +59,10 @@ if (navigator.mediaDevices.getUserMedia) {
       console.log("Last data to read (after MediaRecorder.stop() called).");
       console.log(evt);
 
-      if (evt.type == 'file-upload') {
+      let fileName = "dictofon.webm";
 
+      if (evt.type == 'file-upload') {
+        fileName = chunks[0].name
       }
 
       const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
@@ -70,7 +72,7 @@ if (navigator.mediaDevices.getUserMedia) {
 
 
       const formData  = new FormData();
-      formData.append("audiofile", blob, "test.webm");
+      formData.append("audiofile", blob, fileName);
       const response = await fetch('https://gpt.testme.cloud/api/1.0/transcribe', {method:"POST", body:formData});
       const responce = await response.json();
       console.log(responce);
