@@ -71,23 +71,6 @@ if (navigator.mediaDevices.getUserMedia) {
       console.log("recorder stopped");
 
 
-      const formData  = new FormData();
-      formData.append("audiofile", blob, fileName);
-      const response = await fetch('https://gpt.testme.cloud/api/1.0/transcribe', {method:"POST", body:formData});
-      const responce = await response.json();
-      console.log(responce);
-
-
-      const responseContainer = document.createElement("div");
-      const transcribed = document.createElement("div");
-      transcribed.innerHTML = "<b>TRANSCRIBED:</b> "+responce.Text1;
-      const postProcessed = document.createElement("div");
-      postProcessed.innerHTML = "<b>POSTPROCESSED:</b> "+responce.Text2;
-      const timeTook = document.createElement("div");
-      timeTook.innerHTML = "<b>Time:</b> "+responce.TookTime
-      responseContainer.appendChild(transcribed);
-      responseContainer.appendChild(postProcessed);
-      responseContainer.appendChild(timeTook);
 
       const clipName = prompt(
           "Enter a name for your sound clip?",
@@ -114,7 +97,6 @@ if (navigator.mediaDevices.getUserMedia) {
       clipContainer.appendChild(audio);
       clipContainer.appendChild(clipLabel);
       clipContainer.appendChild(deleteButton);
-      clipContainer.appendChild(responseContainer);
       soundClips.appendChild(clipContainer);
 
       audio.controls = true;
@@ -137,9 +119,23 @@ if (navigator.mediaDevices.getUserMedia) {
       };
 
 
+      const formData  = new FormData();
+      formData.append("audiofile", blob, fileName);
+      const response = await fetch('https://gpt.testme.cloud/api/1.0/transcribe', {method:"POST", body:formData});
+      const responce = await response.json();
+      console.log(responce);
 
-
-
+      const responseContainer = document.createElement("div");
+      const transcribed = document.createElement("div");
+      transcribed.innerHTML = "<b>TRANSCRIBED:</b> "+responce.Text1;
+      const postProcessed = document.createElement("div");
+      postProcessed.innerHTML = "<b>POSTPROCESSED:</b> "+responce.Text2;
+      const timeTook = document.createElement("div");
+      timeTook.innerHTML = "<b>Time:</b> "+responce.TookTime
+      responseContainer.appendChild(transcribed);
+      responseContainer.appendChild(postProcessed);
+      responseContainer.appendChild(timeTook);
+      clipContainer.appendChild(responseContainer);
     };
 
     mediaRecorder.ondataavailable = function (e) {
