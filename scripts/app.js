@@ -121,7 +121,8 @@ if (navigator.mediaDevices.getUserMedia) {
 
       const formData  = new FormData();
       formData.append("audiofile", blob, fileName);
-      const response = await fetch('https://gpt.testme.cloud/api/1.0/transcribe', {method:"POST", body:formData});
+      //const response = await fetch('https://gpt.testme.cloud/api/1.0/transcribe', {method:"POST", body:formData});
+      const response = await fetch('http://localhost:8019/api/1.0/transcribe', {method:"POST", body:formData});
       const responce = await response.json();
       console.log(responce);
 
@@ -130,10 +131,13 @@ if (navigator.mediaDevices.getUserMedia) {
       transcribed.innerHTML = "<b>TRANSCRIBED:</b> "+responce.Text1;
       const postProcessed = document.createElement("div");
       postProcessed.innerHTML = "<b>POSTPROCESSED:</b> "+responce.Text2;
+      const diff = document.createElement("div");
+      diff.innerHTML = "<b>DIFF:</b> "+responce.Diff;
       const timeTook = document.createElement("div");
       timeTook.innerHTML = "<b>Time:</b> "+responce.TookTime
       responseContainer.appendChild(transcribed);
       responseContainer.appendChild(postProcessed);
+      responseContainer.appendChild(diff);
       responseContainer.appendChild(timeTook);
       clipContainer.appendChild(responseContainer);
     };
