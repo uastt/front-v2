@@ -86,6 +86,7 @@ if (navigator.mediaDevices.getUserMedia) {
 
       const clipContainer = document.createElement("article");
       const clipLabel = document.createElement("p");
+      clipLabel.className = "_clipLabel";
       const audio = document.createElement("audio");
       const deleteButton = document.createElement("button");
 
@@ -207,6 +208,7 @@ if (navigator.mediaDevices.getUserMedia) {
 
 
 function exportTexts() {
+  const clipLabel = document.getElementsByClassName("_clipLabel");
   const transcribed = document.getElementsByClassName("_transcribed");
   const postProcessed = document.getElementsByClassName("_postprocessed");
   const diff = document.getElementsByClassName("_diff");
@@ -226,7 +228,7 @@ function exportTexts() {
     const tr = document.createElement("tr");
 
     const td1 = document.createElement("td");
-    td1.innerHTML = transcribed[i].innerHTML;
+    td1.innerHTML = transcribed[i].innerHTML + "<br>---<br>" + clipLabel[i].innerHTML;
     tr.appendChild(td1);
     console.log(td1);
     const td2 = document.createElement("td");
