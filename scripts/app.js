@@ -213,15 +213,29 @@ function exportTexts() {
   const postProcessed = document.getElementsByClassName("_postprocessed");
   const diff = document.getElementsByClassName("_diff");
 
-  var newWin = open('','export texts','');
-  newWin.document.write('<html><head><style>' +
+  const newWin = open('','fdsfd','');
+  /*newWin.document.write('<html><head><style>' +
       'td {' +
       ' padding:5px;' +
       ' border:1px solid grey;' +
       '}' +
-      '</style></head><body></body></html>');
-  const body = newWin.document.querySelector("body");
+      '</style></head><body></body></html>');*/
 
+
+
+  //const html = document.createElement("html");
+  const head = newWin.document.querySelector("head");
+
+  const style = document.createElement('style');
+
+  head.appendChild(style);
+  const css = 'td {' +
+      ' padding:5px;' +
+      ' border:1px solid grey;' +
+      '}'
+  style.appendChild(document.createTextNode(css));
+
+  const body = newWin.document.querySelector("body");
   const table = document.createElement("table");
 
   for (let i=0; i<transcribed.length; i++) {
@@ -242,6 +256,23 @@ function exportTexts() {
   }
 
   body.appendChild(table);
+
+  download("export.html", body.innerHTML)
+}
+
+function download(filename, data) {
+  const blob = new Blob([data], {type: 'text/csv'});
+  if(window.navigator.msSaveOrOpenBlob) {
+    window.navigator.msSaveBlob(blob, filename);
+  }
+  else{
+    const elem = window.document.createElement('a');
+    elem.href = window.URL.createObjectURL(blob);
+    elem.download = filename;
+    document.body.appendChild(elem);
+    elem.click();
+    document.body.removeChild(elem);
+  }
 }
 
 function visualize(stream) {
