@@ -257,7 +257,7 @@ function exportTexts() {
 
   body.appendChild(table);
 
-  download("export.html", body.innerHTML)
+  download("export.html", newWin.document.querySelector("html").innerHTML)
 }
 
 function download(filename, data) {
