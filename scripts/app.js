@@ -1,8 +1,8 @@
 // Set up basic variables for app
 const record = document.querySelector(".record");
 const stop = document.querySelector(".stop");
-const upload = document.querySelector(".upload");
 const uploadFile = document.querySelector("#uploadFile");
+const exportTextsButton = document.querySelector(".export");
 const soundClips = document.querySelector(".sound-clips");
 const canvas = document.querySelector(".visualizer");
 const mainSection = document.querySelector(".main-controls");
@@ -55,6 +55,10 @@ if (navigator.mediaDevices.getUserMedia) {
 
       stop.disabled = true;
       record.disabled = false;
+    };
+
+    exportTextsButton.onclick = function () {
+      exportTexts();
     };
 
     mediaRecorder.onstop = async function (evt) {
@@ -114,7 +118,11 @@ if (navigator.mediaDevices.getUserMedia) {
 
 
       const waiting = document.createElement("div");
-      waiting.innerHTML = "<b>processing...</b> ";
+      const waitingColor = document.createElement("div");
+      //waiting.innerHTML = "<b>processing...</b> ";
+      waiting.className = "progress";
+      waitingColor.className = "color";
+      waiting.appendChild(waitingColor);
       clipContainer.appendChild(waiting);
 
       const formData  = new FormData();
@@ -131,35 +139,56 @@ if (navigator.mediaDevices.getUserMedia) {
         apiURL = "https://gpt.testme.cloud/api/1.0/transcribe";
       }
 
-      const response = await fetch(apiURL, {method:"POST", body:formData});
-      //const response = await fetch('http://localhost:8019/api/1.0/transcribe', {method:"POST", body:formData});
-      const responce = await response.json();
-      console.log(responce);
-
-      waiting.remove();
-
       const responseContainer = document.createElement("div");
 
-      if (responce.Status == "OK") {
-        const transcribed = document.createElement("div");
-        transcribed.innerHTML = "<b>TRANSCRIBED:</b> " + responce.Text1;
-        const postProcessed = document.createElement("div");
-        postProcessed.innerHTML = "<b>POSTPROCESSED:</b> " + responce.Text2;
-        const diff = document.createElement("div");
-        diff.innerHTML = "<b>DIFF:</b> " + responce.Diff;
-        const timeTook = document.createElement("div");
-        timeTook.innerHTML = "<b>Time:</b> " + responce.TookTime
-        responseContainer.appendChild(transcribed);
-        responseContainer.appendChild(postProcessed);
-        responseContainer.appendChild(diff);
-        responseContainer.appendChild(timeTook);
+      const response = await fetch(apiURL, {method:"POST", body:formData}).catch(
+          function (err) {
+            console.log('err!');
+            const error = document.createElement("div");
+            error.innerHTML = "<b>ERROR sending request:</b> " + err;
+            responseContainer.appendChild(error);
+          }
+      );
+
+      waiting.remove();
+      //const response = await fetch('http://localhost:8019/api/1.0/transcribe', {method:"POST", body:formData});
+      if (response != undefined) {
+        const responseJson = await response.json();
+
+        if (responseJson.Status == "OK") {
+          const transcribedHeader = document.createElement("h4");
+          transcribedHeader.innerText = "TRANSCRIBED"
+          const transcribed = document.createElement("div");
+          transcribed.innerHTML = responseJson.Text1;
+          transcribed.className = "_transcribed";
+          const postProcessedHeader = document.createElement("h4");
+          postProcessedHeader.innerText = "POSTPROCESSED"
+          const postProcessed = document.createElement("div");
+          postProcessed.innerHTML = responseJson.Text2;
+          postProcessed.className = "_postprocessed";
+          const diffHeader = document.createElement("h4");
+          diffHeader.innerText = "DIFF"
+          const diff = document.createElement("div");
+          diff.innerHTML = responseJson.Diff;
+          diff.className = "_diff";
+          const timeTook = document.createElement("div");
+          timeTook.innerHTML = "<b>Time:</b> " + responseJson.TookTime
+          responseContainer.appendChild(transcribedHeader);
+          responseContainer.appendChild(transcribed);
+          responseContainer.appendChild(postProcessedHeader);
+          responseContainer.appendChild(postProcessed);
+          responseContainer.appendChild(diffHeader);
+          responseContainer.appendChild(diff);
+          responseContainer.appendChild(timeTook);
+        } else {
+          const error = document.createElement("div");
+          error.innerHTML = "<b>ERROR:</b> " + responseJson.Status;
+          responseContainer.appendChild(error);
+        }
       } else {
-        const error = document.createElement("div");
-        error.innerHTML = "<b>ERROR:</b> " + responce.Status;
-        responseContainer.appendChild(error);
+        console.log('not ok!')
       }
       clipContainer.appendChild(responseContainer);
-
     };
 
     mediaRecorder.ondataavailable = function (e) {
@@ -174,6 +203,43 @@ if (navigator.mediaDevices.getUserMedia) {
   navigator.mediaDevices.getUserMedia(constraints).then(onSuccess, onError);
 } else {
   console.log("MediaDevices.getUserMedia() not supported on your browser!");
+}
+
+
+function exportTexts() {
+  const transcribed = document.getElementsByClassName("_transcribed");
+  const postProcessed = document.getElementsByClassName("_postprocessed");
+  const diff = document.getElementsByClassName("_diff");
+
+  var newWin = open('','export texts','');
+  newWin.document.write('<html><head><style>' +
+      'td {' +
+      ' padding:5px;' +
+      ' border:1px solid grey;' +
+      '}' +
+      '</style></head><body></body></html>');
+  const body = newWin.document.querySelector("body");
+
+  const table = document.createElement("table");
+
+  for (let i=0; i<transcribed.length; i++) {
+    const tr = document.createElement("tr");
+
+    const td1 = document.createElement("td");
+    td1.innerHTML = transcribed[i].innerHTML;
+    tr.appendChild(td1);
+    console.log(td1);
+    const td2 = document.createElement("td");
+    td2.innerHTML = postProcessed[i].innerHTML;
+    tr.appendChild(td2);
+    const td3 = document.createElement("td");
+    td3.innerHTML = diff[i].innerHTML;
+    tr.appendChild(td3);
+
+    table.appendChild(tr);
+  }
+
+  body.appendChild(table);
 }
 
 function visualize(stream) {
