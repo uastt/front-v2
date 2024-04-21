@@ -30,8 +30,10 @@ if (navigator.mediaDevices.getUserMedia) {
       //console.log(e);
       const url = (URL || webkit).createObjectURL(this.files[0]);
       //console.log(this.files[0]);
-      chunks.push(this.files[0]);
-      mediaRecorder.onstop(new Event('file-upload'));
+      for (let i=0; i<this.files.length; i++) {
+        chunks.push(this.files[i]);
+        mediaRecorder.onstop(new Event('file-upload'));
+      }
     }
 
     record.onclick = function () {
@@ -72,10 +74,10 @@ if (navigator.mediaDevices.getUserMedia) {
 
 
 
-      const clipName = prompt(
+/*      const clipName = prompt(
           "Enter a name for your sound clip?",
           "My unnamed clip"
-      );
+      );*/
 
 
       const clipContainer = document.createElement("article");
@@ -88,12 +90,6 @@ if (navigator.mediaDevices.getUserMedia) {
       deleteButton.textContent = "Delete";
       deleteButton.className = "delete";
 
-      if (clipName === null) {
-        clipLabel.textContent = "My unnamed clip";
-      } else {
-        clipLabel.textContent = clipName;
-      }
-
       clipContainer.appendChild(audio);
       clipContainer.appendChild(clipLabel);
       clipContainer.appendChild(deleteButton);
@@ -102,15 +98,13 @@ if (navigator.mediaDevices.getUserMedia) {
       audio.controls = true;
       audio.src = audioURL;
 
-
-
       deleteButton.onclick = function (e) {
         e.target.closest(".clip").remove();
       };
 
       clipLabel.onclick = function () {
         const existingName = clipLabel.textContent;
-        const newClipName = prompt("Enter a new name for your sound clip?");
+        const newClipName = prompt("Enter a new name for your sound clip?", existingName);
         if (newClipName === null) {
           clipLabel.textContent = existingName;
         } else {
@@ -119,27 +113,53 @@ if (navigator.mediaDevices.getUserMedia) {
       };
 
 
+      const waiting = document.createElement("div");
+      waiting.innerHTML = "<b>processing...</b> ";
+      clipContainer.appendChild(waiting);
+
       const formData  = new FormData();
       formData.append("audiofile", blob, fileName);
-      //const response = await fetch('https://gpt.testme.cloud/api/1.0/transcribe', {method:"POST", body:formData});
-      const response = await fetch('http://localhost:8019/api/1.0/transcribe', {method:"POST", body:formData});
+
+      if (evt.type == 'file-upload') {
+        clipLabel.textContent = fileName;
+      } else {
+        clipLabel.textContent = "Голос";
+      }
+
+      let apiURL = 'http://localhost:8019/api/1.0/transcribe';
+      if (document.location.hostname != "localhost") {
+        apiURL = "https://gpt.testme.cloud/api/1.0/transcribe";
+      }
+
+      const response = await fetch(apiURL, {method:"POST", body:formData});
+      //const response = await fetch('http://localhost:8019/api/1.0/transcribe', {method:"POST", body:formData});
       const responce = await response.json();
       console.log(responce);
 
+      waiting.remove();
+
       const responseContainer = document.createElement("div");
-      const transcribed = document.createElement("div");
-      transcribed.innerHTML = "<b>TRANSCRIBED:</b> "+responce.Text1;
-      const postProcessed = document.createElement("div");
-      postProcessed.innerHTML = "<b>POSTPROCESSED:</b> "+responce.Text2;
-      const diff = document.createElement("div");
-      diff.innerHTML = "<b>DIFF:</b> "+responce.Diff;
-      const timeTook = document.createElement("div");
-      timeTook.innerHTML = "<b>Time:</b> "+responce.TookTime
-      responseContainer.appendChild(transcribed);
-      responseContainer.appendChild(postProcessed);
-      responseContainer.appendChild(diff);
-      responseContainer.appendChild(timeTook);
+
+      if (responce.Status == "OK") {
+        const transcribed = document.createElement("div");
+        transcribed.innerHTML = "<b>TRANSCRIBED:</b> " + responce.Text1;
+        const postProcessed = document.createElement("div");
+        postProcessed.innerHTML = "<b>POSTPROCESSED:</b> " + responce.Text2;
+        const diff = document.createElement("div");
+        diff.innerHTML = "<b>DIFF:</b> " + responce.Diff;
+        const timeTook = document.createElement("div");
+        timeTook.innerHTML = "<b>Time:</b> " + responce.TookTime
+        responseContainer.appendChild(transcribed);
+        responseContainer.appendChild(postProcessed);
+        responseContainer.appendChild(diff);
+        responseContainer.appendChild(timeTook);
+      } else {
+        const error = document.createElement("div");
+        error.innerHTML = "<b>ERROR:</b> " + responce.Status;
+        responseContainer.appendChild(error);
+      }
       clipContainer.appendChild(responseContainer);
+
     };
 
     mediaRecorder.ondataavailable = function (e) {
