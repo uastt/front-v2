@@ -227,7 +227,10 @@ function exportTexts() {
   const head = newWin.document.querySelector("head");
 
   const style = document.createElement('style');
+  const encoding = document.createElement('meta');
+  encoding.setAttribute("charset", "UTF-8");
 
+  head.appendChild(encoding);
   head.appendChild(style);
   const css = 'td {' +
       ' padding:5px;' +
