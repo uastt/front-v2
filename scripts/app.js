@@ -87,10 +87,12 @@ if (navigator.mediaDevices.getUserMedia) {
       const clipContainer = document.createElement("article");
       const clipLabel = document.createElement("p");
       clipLabel.className = "_clipLabel";
+      clipLabel.classList.add("_waiting");
       const audio = document.createElement("audio");
       const deleteButton = document.createElement("button");
 
       clipContainer.classList.add("clip");
+      clipContainer.setAttribute("status", "pending");
       audio.setAttribute("controls", "");
       deleteButton.textContent = "Delete";
       deleteButton.className = "delete";
@@ -148,6 +150,7 @@ if (navigator.mediaDevices.getUserMedia) {
             const error = document.createElement("div");
             error.innerHTML = "<b>ERROR sending request:</b> " + err;
             responseContainer.appendChild(error);
+            clipLabel.classList.replace("_waiting", "_error");
           }
       );
 
@@ -157,6 +160,8 @@ if (navigator.mediaDevices.getUserMedia) {
         const responseJson = await response.json();
 
         if (responseJson.Status == "OK") {
+          clipLabel.classList.replace("_waiting", "_ok");
+
           const transcribedHeader = document.createElement("h4");
           transcribedHeader.innerText = "TRANSCRIBED"
           const transcribed = document.createElement("div");
@@ -208,7 +213,7 @@ if (navigator.mediaDevices.getUserMedia) {
 
 
 function exportTexts() {
-  const clipLabel = document.getElementsByClassName("_clipLabel");
+  const clipLabel = document.getElementsByClassName("_clipLabel _ok");
   const transcribed = document.getElementsByClassName("_transcribed");
   const postProcessed = document.getElementsByClassName("_postprocessed");
   const diff = document.getElementsByClassName("_diff");
