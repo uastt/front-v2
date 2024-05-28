@@ -149,7 +149,7 @@ if (navigator.mediaDevices.getUserMedia) {
 
       let apiURL = 'http://localhost:8020/api/1.0/transcribe';
       if (document.location.hostname != "localhost") {
-        apiURL = "https://gpt.testme.cloud/api/1.0/transcribe";
+        apiURL = "https://gpt2.testme.cloud/api/1.0/transcribe";
       }
 
       const responseContainer = document.createElement("div");
